@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#090909">
+<title>Spider Anime</title>
+<style>
+:root{--bg:#070707;--card:#111;--card2:#171717;--red:#e50914;--red2:#ff2934;--text:#f5f5f5;--muted:#999;--line:#292929}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at 50% -10%,#330708 0,#070707 38%);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input{font:inherit}
+button{cursor:pointer}
+header{position:sticky;top:0;z-index:20;background:#080808eF;backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav{max-width:1200px;margin:auto;padding:14px 16px;display:flex;align-items:center;gap:16px}
+.logo{font-size:25px;font-weight:900;color:#fff;white-space:nowrap}.logo b{color:var(--red)}
+.search{display:flex;flex:1;max-width:650px;margin:auto}
+.search input{width:100%;border:1px solid #333;background:#151515;color:white;padding:12px 15px;border-radius:12px 0 0 12px;outline:none;direction:rtl}
+.search button{border:0;background:var(--red);color:white;padding:0 18px;border-radius:0 12px 12px 0;font-weight:800}
+.hero{max-width:1200px;margin:auto;padding:55px 16px 25px;text-align:center}
+.hero h1{font-size:clamp(34px,7vw,68px);margin:0 0 8px;font-weight:950}.hero h1 span{color:var(--red)}
+.hero p{color:var(--muted);margin:0}
+.tabs{max-width:1200px;margin:10px auto 25px;padding:0 16px;display:flex;gap:9px;overflow:auto}
+.tab{background:#151515;color:#ddd;border:1px solid #292929;padding:10px 18px;border-radius:999px;white-space:nowrap}.tab.active{background:var(--red);border-color:var(--red);color:white}
+.status{max-width:1200px;margin:auto;padding:0 16px 14px;color:var(--muted);min-height:30px}
+.grid{max-width:1200px;margin:auto;padding:0 16px 50px;display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:16px}
+.card{background:linear-gradient(180deg,#151515,#0e0e0e);border:1px solid var(--line);border-radius:15px;overflow:hidden;transition:.2s;cursor:pointer}
+.card:hover{transform:translateY(-4px);border-color:#5b1518}
+.poster{width:100%;aspect-ratio:2/3;object-fit:cover;background:#1c1c1c;display:block}
+.card-body{padding:11px}.title{font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meta{font-size:12px;color:#aaa;margin-top:6px;line-height:1.6}
+.empty{grid-column:1/-1;text-align:center;padding:55px 15px;color:#777}
+.modal{position:fixed;inset:0;background:#000B;z-index:50;display:none;overflow:auto;padding:20px}.modal.show{display:block}
+.modal-box{max-width:850px;margin:35px auto;background:#111;border:1px solid #333;border-radius:18px;overflow:hidden;box-shadow:0 20px 70px #000}
+.close{float:left;margin:12px;background:#222;color:#fff;border:0;border-radius:50%;width:38px;height:38px;font-size:20px}
+.detail{display:grid;grid-template-columns:220px 1fr;gap:20px;padding:22px}.detail img{width:100%;border-radius:12px}.detail h2{font-size:30px;margin:5px 0 8px}.desc{color:#bbb;line-height:2}
+.badges{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}.badge{background:#211010;border:1px solid #431417;color:#ff9b9f;padding:5px 9px;border-radius:999px;font-size:12px}
+.episodes{padding:0 22px 25px}.episodes h3{margin-top:0}.season{margin:10px 0}.season-title{font-weight:800;margin-bottom:10px}.eps{display:flex;flex-wrap:wrap;gap:8px}.ep{border:1px solid #333;background:#191919;color:white;border-radius:9px;padding:9px 13px}.ep:hover{background:var(--red);border-color:var(--red)}
+video{width:100%;background:#000;max-height:70vh}
+.player{padding:20px}.player h3{margin-top:0}
+@media(max-width:650px){.nav{flex-wrap:wrap}.logo{width:100%;text-align:center}.search{order:2;width:100%}.detail{grid-template-columns:120px 1fr;padding:15px}.detail h2{font-size:22px}.grid{grid-template-columns:repeat(2,1fr);gap:11px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="logo">🕷️ Spider <b>Anime</b></div>
+    <div class="search">
+      <input id="searchInput" placeholder="نام انیمه، فیلم یا سریال..." autocomplete="off">
+      <button id="searchBtn">جستجو</button>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>Spider <span>Anime</span></h1>
+  <p>انیمه • فیلم • سریال</p>
+</section>
+
+<nav class="tabs">
+  <button class="tab active" data-type="anime">انیمه</button>
+  <button class="tab" data-type="series">سریال</button>
+  <button class="tab" data-type="movie">فیلم</button>
+</nav>
+
+<div class="status" id="status">یک عنوان جستجو کن 🕷️</div>
+<main class="grid" id="grid"></main>
+
+<div class="modal" id="detailModal">
+  <div class="modal-box">
+    <button class="close" onclick="closeModal()">×</button>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<div class="modal" id="playerModal">
+  <div class="modal-box">
+    <button class="close" onclick="closePlayer()">×</button>
+    <div class="player">
+      <h3 id="playerTitle"></h3>
+      <video id="videoPlayer" controls playsinline></video>
+      <p id="playerNote" class="desc"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+/*
+  Spider Anime - frontend only
+  منابع اطلاعات:
+  Anime  -> Jikan / MyAnimeList
+  Series -> TVMaze
+  Movie  -> TMDB (نیازمند API key)
+
+  مهم:
+  HTML خالی نمی‌تواند ویدیو را روی Cloudflare ذخیره کند.
+  قسمت‌های واقعی باید بعداً به Worker/R2 یا backend وصل شوند.
+*/
+
+const TMDB_API_KEY = ""; // کلید TMDB را اینجا قرار بده؛ بدون کلید بخش فیلم فعال نمی‌شود.
+
+let currentType = "anime";
+const episodeStore = {
+  // نمونه:
+  // "mal:20": {
+  //   1: {1:"https://example.com/video.mp4"}
+  // }
+};
+
+const $ = id => document.getElementById(id);
+
+function esc(v=""){
+  return String(v).replace(/[&<>"']/g,m=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[m]));
+}
+
+function setStatus(text){$("status").textContent=text}
+
+document.querySelectorAll(".tab").forEach(btn=>{
+  btn.onclick=()=>{
+    currentType=btn.dataset.type;
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");
+    setStatus(
+      currentType==="anime" ? "جستجوی انیمه با اطلاعات خودکار." :
+      currentType==="series" ? "جستجوی سریال با اطلاعات خودکار." :
+      "برای فیلم باید TMDB API Key وارد شود."
+    );
+  };
+});
+
+$("searchBtn").onclick=search;
+$("searchInput").addEventListener("keydown",e=>{if(e.key==="Enter")search()});
+
+async function search(){
+  const q=$("searchInput").value.trim();
+  if(!q){setStatus("اول نام موردنظر را وارد کن.");return}
+  $("grid").innerHTML="";
+  setStatus("در حال دریافت اطلاعات... ⏳");
+  try{
+    if(currentType==="anime") await searchAnime(q);
+    else if(currentType==="series") await searchSeries(q);
+    else await searchMovie(q);
+  }catch(err){
+    console.error(err);
+    setStatus("دریافت اطلاعات ناموفق بود. اینترنت یا API را بررسی کن.");
+  }
+}
+
+async function searchAnime(q){
+  const r=await fetch("https://api.jikan.moe/v4/anime?q="+encodeURIComponent(q)+"&limit=20");
+  if(!r.ok)throw Error(r.status);
+  const j=await r.json();
+  const items=(j.data||[]).map(a=>({
+    id:"anime:"+a.mal_id,
+    apiId:a.mal_id,
+    type:"anime",
+    title:a.title,
+    year:a.year||a.aired?.prop?.from?.year||"—",
+    image:a.images?.jpg?.large_image_url||a.images?.jpg?.image_url||"",
+    meta:`${a.type||"Anime"} • ${a.episodes??"?"} قسمت • ⭐ ${a.score??"—"}`,
+    genres:(a.genres||[]).map(x=>x.name),
+    desc:a.synopsis||"توضیحی ثبت نشده است.",
+    episodes:a.episodes||0
+  }));
+  render(items);
+}
+
+async function searchSeries(q){
+  const r=await fetch("https://api.tvmaze.com/search/shows?q="+encodeURIComponent(q));
+  if(!r.ok)throw Error(r.status);
+  const j=await r.json();
+  const items=(j||[]).slice(0,20).map(x=>({
+    id:"series:"+x.show.id,
+    apiId:x.show.id,
+    type:"series",
+    title:x.show.name,
+    year:(x.show.premiered||"").slice(0,4)||"—",
+    image:x.show.image?.original||x.show.image?.medium||"",
+    meta:`${x.show.type||"Series"} • ${(x.show.genres||[]).slice(0,3).join(" / ")}`,
+    genres:x.show.genres||[],
+    desc:(x.show.summary||"توضیحی ثبت نشده است.").replace(/<[^>]+>/g,""),
+    episodes:0
+  }));
+  render(items);
+}
+
+async function searchMovie(q){
+  if(!TMDB_API_KEY){
+    $("grid").innerHTML=`<div class="empty">
+      <h2>🎬 بخش فیلم آماده است</h2>
+      <p>برای دریافت خودکار پوستر و اطلاعات فیلم، یک TMDB API Key در کد وارد کن.</p>
+    </div>`;
+    setStatus("TMDB API Key وارد نشده است.");
+    return;
+  }
+  const r=await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${encodeURIComponent(TMDB_API_KEY)}&language=fa-IR&query=${encodeURIComponent(q)}`);
+  if(!r.ok)throw Error(r.status);
+  const j=await r.json();
+  const items=(j.results||[]).slice(0,20).map(m=>({
+    id:"movie:"+m.id,apiId:m.id,type:"movie",title:m.title,
+    year:(m.release_date||"").slice(0,4)||"—",
+    image:m.poster_path?"https://image.tmdb.org/t/p/w500"+m.poster_path:"",
+    meta:`Film • ⭐ ${m.vote_average?m.vote_average.toFixed(1):"—"}`,
+    genres:[],desc:m.overview||"توضیحی ثبت نشده است."
+  }));
+  render(items);
+}
+
+function render(items){
+  if(!items.length){
+    $("grid").innerHTML='<div class="empty">نتیجه‌ای پیدا نشد 🕷️</div>';
+    setStatus("نتیجه‌ای پیدا نشد.");
+    return;
+  }
+  setStatus(`${items.length} نتیجه پیدا شد.`);
+  $("grid").innerHTML=items.map((x,i)=>`
+    <article class="card" data-index="${i}">
+      <img class="poster" src="${esc(x.image)}" alt="${esc(x.title)}"
+           onerror="this.src='data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="500" height="750"><rect width="100%" height="100%" fill="#191919"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#777" font-size="28">NO POSTER</text></svg>`)}'">
+      <div class="card-body">
+        <div class="title">${esc(x.title)}</div>
+        <div class="meta">${esc(x.year)} • ${esc(x.meta)}</div>
+      </div>
+    </article>`).join("");
+
+  $("grid").querySelectorAll(".card").forEach((card,i)=>card.onclick=()=>openDetails(items[i]));
+}
+
+function openDetails(x){
+  const eps=episodeStore[x.id]||{};
+  const seasons=Object.keys(eps);
+  const episodeHTML = x.type==="movie"
+    ? `<button class="ep" onclick="alert('لینک فیلم هنوز به Storage وصل نشده است.')">▶ پخش فیلم</button>`
+    : seasons.length
+      ? seasons.map(s=>`
+          <div class="season">
+            <div class="season-title">فصل ${esc(s)}</div>
+            <div class="eps">${Object.keys(eps[s]).sort((a,b)=>a-b).map(n=>
+              `<button class="ep" onclick="playEpisode('${esc(x.id)}','${esc(s)}','${esc(n)}','${esc(x.title)}')">قسمت ${esc(n)}</button>`
+            ).join("")}</div>
+          </div>`).join("")
+      : `<p class="desc">هنوز قسمتی برای این عنوان اضافه نشده است.</p>`;
+
+  $("detailContent").innerHTML=`
+    <div class="detail">
+      <img src="${esc(x.image)}" alt="${esc(x.title)}">
+      <div>
+        <h2>${esc(x.title)}</h2>
+        <div class="meta">${esc(x.year)} • ${esc(x.meta)}</div>
+        <div class="badges">${(x.genres||[]).map(g=>`<span class="badge">${esc(g)}</span>`).join("")}</div>
+        <p class="desc">${esc(x.desc)}</p>
+      </div>
+    </div>
+    <div class="episodes">
+      <h3>📺 فصل‌ها و قسمت‌ها</h3>
+      ${episodeHTML}
+    </div>`;
+  $("detailModal").classList.add("show");
+}
+
+function closeModal(){$("detailModal").classList.remove("show")}
+function closePlayer(){$("playerModal").classList.remove("show");$("videoPlayer").pause();$("videoPlayer").removeAttribute("src")}
+
+function playEpisode(id,season,ep,title){
+  const url=episodeStore[id]?.[season]?.[ep];
+  if(!url){alert("آدرس ویدیو برای این قسمت ثبت نشده است.");return}
+  $("playerTitle").textContent=`${title} — فصل ${season} — قسمت ${ep}`;
+  $("videoPlayer").src=url;
+  $("playerNote").textContent="این پخش‌کننده آماده اتصال به فایل‌های ویدیویی Cloudflare R2 است.";
+  $("playerModal").classList.add("show");
+  $("videoPlayer").play().catch(()=>{});
+}
+
+window.addEventListener("click",e=>{
+  if(e.target===$("detailModal"))closeModal();
+  if(e.target===$("playerModal"))closePlayer();
+});
+</script>
+</body>
+</html>
